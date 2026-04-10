@@ -1,9 +1,3 @@
--- =====================================================
--- Лабораторная работа №1
--- Тема: Система управления гостиницей
--- СУБД: PostgreSQL
--- Все операции приложения выполняются через функции и процедуры
--- =====================================================
 
 -- 1. Очистка старых объектов
 DROP TRIGGER IF EXISTS trg_hotels_audit ON hotels;
@@ -437,7 +431,7 @@ BEGIN
 END;
 $$;
 
--- LOG FUNCTIONS FOR APP (чтобы не делать прямой SELECT из приложения)
+-- LOG FUNCTIONS FOR APP
 CREATE OR REPLACE FUNCTION select_hotels_log()
 RETURNS TABLE(log_id INTEGER, id INTEGER, name TEXT, city TEXT, rating NUMERIC, user_name TEXT, update_time TIMESTAMP, action TEXT)
 LANGUAGE plpgsql
@@ -488,7 +482,7 @@ BEGIN
 END;
 $$;
 
--- 7. Наполнение данными через процедуры (50+ записей)
+-- 7. Наполнение данными через процедуры 
 DO $$
 BEGIN
     -- 5 отелей
@@ -562,12 +556,12 @@ CREATE ROLE db_user LOGIN PASSWORD 'user123';
 
 GRANT USAGE ON SCHEMA public TO db_admin, db_service, db_user;
 
--- Администратор: полный доступ ко всем таблицам и процедурам
+-- Админ
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO db_admin;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO db_admin;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO db_admin;
 
--- Права для db_service
+-- Сервисная УЗ
 GRANT SELECT, INSERT, UPDATE ON hotels, rooms, guests, bookings, services TO db_service;
 
 GRANT USAGE, SELECT ON SEQUENCE hotels_id_seq TO db_service;
@@ -586,7 +580,7 @@ GRANT USAGE, SELECT ON SEQUENCE guests_log_log_id_seq TO db_service;
 GRANT USAGE, SELECT ON SEQUENCE bookings_log_log_id_seq TO db_service;
 GRANT USAGE, SELECT ON SEQUENCE services_log_log_id_seq TO db_service;
 
--- ПРАВА ДЛЯ db_user (только чтение через функции поиска)
+-- Пользак
 GRANT SELECT ON hotels, rooms, bookings, services TO db_user;
 
 GRANT EXECUTE ON FUNCTION
@@ -596,7 +590,7 @@ select_booking_by_status(TEXT),
 select_service_by_name(TEXT)
 TO db_user;
 
--- Сервисная учетная запись: SELECT, INSERT, UPDATE через процедуры/функции
+-- Сервисная УЗ: SELECT, INSERT, UPDATE
 GRANT EXECUTE ON PROCEDURE
     insert_hotel(TEXT, TEXT, NUMERIC),
     update_hotel_rating(INTEGER, NUMERIC),
@@ -618,7 +612,7 @@ GRANT EXECUTE ON FUNCTION
     select_service_by_name(TEXT)
 TO db_service;
 
--- Пользователь: только SELECT-функции
+-- Пользак: только SELECT
 GRANT EXECUTE ON FUNCTION
     select_hotel_by_name(TEXT),
     select_room_by_type(TEXT),
@@ -626,7 +620,7 @@ GRANT EXECUTE ON FUNCTION
     select_service_by_name(TEXT)
 TO db_user;
 
--- Администратору дополнительно разрешаем удаление и просмотр логов
+-- Админу допом удаление и просмотр логов
 GRANT EXECUTE ON PROCEDURE
     delete_hotel(INTEGER),
     delete_room(INTEGER),
